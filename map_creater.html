@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 微信风格字体 */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e5e5e5, #cfd8dc);
+        }
+        .container {
+            padding: 20px;
+            max-width: 100%;
+            overflow-x: auto;
+            background-color: #f7f7f7;
+            border-radius: 10px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #444;
+        }
+        .button-group, .input-group {
+            margin-bottom: 20px;
+        }
+        .grid-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 20px;
+            max-width: 100%;
+            border-radius: 10px; /* 圆角 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+        }
+        .grid {
+            display: grid;
+            gap: 1px;
+            background: #ddd;
+            padding: 2px;
+            max-width: 1000px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .cell {
+            position: relative; /* 添加相对定位 */
+            min-width: 10px;
+            min-height: 10px;
+            width: calc(min(40px, 1000px / var(--cols)));
+            height: calc(min(40px, 1000px / var(--rows)));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: calc(min(16px, 25px / var(--cols)));
+            border-radius: 5px; /* 圆角 */
+        }
+        .wall {
+            background-image: url('img/qiangbi.png');
+            background-size: cover;
+        }
+        .path {
+            background-image: url('img/caoping.png');
+            background-size: cover;
+        }
+        .start { background: #FFEB3B; }
+        .end { background: #F44336; }
+        .expand-btn {
+            position: absolute;
+            width: 30px; /* 减小按钮大小 */
+            height: 30px;
+            background: #2196F3;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            border-radius: 15px; /* 圆角 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+        }
+        .export-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            max-width: 100%;
+            overflow-x: auto;
+            background-color: #fff; /* 微信风格背景色 */
+            border-radius: 10px; /* 圆角 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+        }
+        .tag-group {
+            margin-bottom: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #1AAD19, #179b16);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #179b16, #1AAD19);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .bush {
+            background-image: url('img/caoping.png'), url('img/caocong.png');
+            background-size: cover, contain;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+        }
+        .tag-marker {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            background-color: #2E7D32; /* 深绿色 */
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            z-index: 2;
+        }
+        .bush-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-image: url('img/caocong.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        .duelist {
+            background-image: url('img/caoping.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .duelist-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-image: url('img/man.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        .duelist-marker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            background-color: red;
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            z-index: 2;
+        }
+        .slow {
+            background-image: url('img/caoping.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .slow-marker {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: orange;
+            color: white;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .eyes {
+            background-image: url('img/caoping.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .eyes-marker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            background-color: blue; /* 蓝色 */
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            z-index: 2;
+        }
+        .eyes-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-image: url('img/eyes.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        #slowModeToggle {
+            background: linear-gradient(135deg, orange, darkorange);
+        }
+        #bushModeToggle {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+        }
+        #duelistModeToggle {
+            background: linear-gradient(135deg, red, darkred);
+        }
+        #eyesModeToggle {
+            background: linear-gradient(135deg, blue, darkblue);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="button-group">
+        <div class="section-title">网格操作</div>
+        <button onclick="initGrid(3,3)">初始化3x3网格</button>
+        <button onclick="exportData()">导出数据</button>
+        <input type="text" id="importData" placeholder="粘贴map数据">
+        <button onclick="importData()">导入数据</button>
+    </div>
+    <div class="input-group">
+        <div class="section-title">坐标设置</div>
+        <input type="text" id="startCoord" placeholder="起点坐标 (x,y)">
+        <input type="text" id="endCoord" placeholder="终点坐标 (x,y)">
+        <button onclick="locatePoints()">定位坐标</button>
+    </div>
+    <div class="tag-group">
+        <div class="section-title">模式切换</div>
+        <button id="slowModeToggle" onclick="toggleSlowMode()">慢行模式</button>
+        <button id="bushModeToggle" onclick="toggleBushMode()">草丛模式</button>
+        <button id="duelistModeToggle" onclick="toggleDuelistMode()">决斗者模式</button>
+        <button id="eyesModeToggle" onclick="toggleEyesMode()">眼睛模式</button>
+    </div>
+    <div class="grid-wrapper" id="gridWrapper">
+        <div class="grid" id="grid"></div>
+        <div class="expand-btn" style="top:-45px;left:50%" onclick="expandGrid('top')">↑</div>
+        <div class="expand-btn" style="bottom:-45px;left:50%" onclick="expandGrid('bottom')">↓</div>
+        <div class="expand-btn" style="left:-45px;top:50%" onclick="expandGrid('left')">←</div>
+        <div class="expand-btn" style="right:-45px;top:50%" onclick="expandGrid('right')">→</div>
+    </div>
+    <div class="export-panel">
+        <div class="section-title">导出结果</div>
+        <pre id="output"></pre>
+    </div>
+</div>
+
+<script>
+    let mapState = { start: null, end: null };
+    let slowMode = false;
+    let bushMode = false;
+    let duelistMode = false;
+    let eyesMode = false;
+
+    // 初始化网格
+    function initGrid(rows=5, cols=5) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+        // 设置CSS变量
+        grid.style.setProperty('--cols', cols);
+        grid.style.setProperty('--rows', rows);
+
+        for(let y=0; y<rows; y++) {
+            for(let x=0; x<cols; x++) {
+                createCell(x, y);
+            }
+        }
+    }
+
+    // 创建单元格
+    function createCell(x, y) {
+        const cell = document.createElement('div');
+        cell.className = 'cell wall';
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        cell.dataset.state = 'wall';
+        cell.onclick = () => cycleState(cell);
+        document.getElementById('grid').appendChild(cell);
+    }
+
+    // 状态循环切换
+    function cycleState(cell) {
+        if (slowMode && cell.dataset.state === 'path') {
+            if (!cell.querySelector('.slow-marker')) {
+                const marker = document.createElement('div');
+                marker.className = 'slow-marker';
+                marker.style.position = 'absolute';
+                marker.style.top = '0';
+                marker.style.right = '0';
+                marker.style.width = '10px';
+                marker.style.height = '10px';
+                marker.style.backgroundColor = 'orange';
+                marker.style.color = 'white';
+                marker.style.fontSize = '8px';
+                marker.style.display = 'flex';
+                marker.style.alignItems = 'center';
+                marker.style.justifyContent = 'center';
+                marker.textContent = '!';
+                cell.appendChild(marker);
+                cell.dataset.state = 'slow';
+            }
+            return;
+        }
+        if (bushMode && cell.dataset.state === 'path') {
+            if (!cell.querySelector('.tag-marker')) {
+                const tagMarker = document.createElement('div');
+                tagMarker.className = 'tag-marker';
+                tagMarker.textContent = '?';
+                cell.appendChild(tagMarker);
+                cell.dataset.state = 'bush';
+                cell.classList.add('bush');
+
+                // 添加草丛图片
+                const bushImage = document.createElement('div');
+                bushImage.className = 'bush-image';
+                cell.appendChild(bushImage);
+            } else {
+                const tagMarker = cell.querySelector('.tag-marker');
+                if (tagMarker) {
+                    cell.removeChild(tagMarker);
+                }
+                const bushImage = cell.querySelector('.bush-image');
+                if (bushImage) {
+                    cell.removeChild(bushImage);
+                }
+                cell.dataset.state = 'path';
+                cell.classList.remove('bush');
+            }
+            return;
+        }
+        if (duelistMode && cell.dataset.state === 'path') {
+            if (!cell.querySelector('.duelist-marker')) {
+                const duelistMarker = document.createElement('div');
+                duelistMarker.className = 'duelist-marker';
+                duelistMarker.textContent = 'F';
+                cell.appendChild(duelistMarker);
+                cell.dataset.state = 'duelist';
+                cell.classList.add('duelist');
+
+                // 添加人物图片
+                const duelistImage = document.createElement('div');
+                duelistImage.className = 'duelist-image';
+                cell.appendChild(duelistImage);
+            } else {
+                const duelistMarker = cell.querySelector('.duelist-marker');
+                if (duelistMarker) {
+                    cell.removeChild(duelistMarker);
+                }
+                const duelistImage = cell.querySelector('.duelist-image');
+                if (duelistImage) {
+                    cell.removeChild(duelistImage);
+                }
+                cell.dataset.state = 'path';
+                cell.classList.remove('duelist');
+            }
+            return;
+        }
+        if (eyesMode && cell.dataset.state === 'path') {
+            if (!cell.querySelector('.eyes-marker')) {
+                const eyesMarker = document.createElement('div');
+                eyesMarker.className = 'eyes-marker';
+                eyesMarker.textContent = '👁';
+                cell.appendChild(eyesMarker);
+                cell.dataset.state = 'eyes';
+                cell.classList.add('eyes');
+
+                // 添加眼睛图片
+                const eyesImage = document.createElement('div');
+                eyesImage.className = 'eyes-image';
+                cell.appendChild(eyesImage);
+            } else {
+                const eyesMarker = cell.querySelector('.eyes-marker');
+                if (eyesMarker) {
+                    cell.removeChild(eyesMarker);
+                }
+                const eyesImage = cell.querySelector('.eyes-image');
+                if (eyesImage) {
+                    cell.removeChild(eyesImage);
+                }
+                cell.dataset.state = 'path';
+                cell.classList.remove('eyes');
+            }
+            return;
+        }
+        const states = ['wall', 'path', 'start', 'end'];
+        const current = cell.dataset.state;
+        const next = states[(states.indexOf(current)+1)%4];
+
+        // 清除之前的文本内容
+        cell.textContent = '';
+
+        // 如果要改变为path（绿色），进行特殊处理
+        if (next === 'path') {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+
+            // 检查是否有直接相邻的绿色块
+            const hasAdjacentPath = [
+                getCell(x-1, y),
+                getCell(x+1, y),
+                getCell(x, y-1),
+                getCell(x, y+1)
+            ].some(adjacentCell => adjacentCell?.dataset.state === 'path');
+
+            if (hasAdjacentPath) {
+                // 如果有相邻的绿色块，直接设置为绿色，不做延伸
+                cell.dataset.state = 'path';
+                cell.className = 'cell path';
+                return;
+            } else {
+                // 如果没有相邻的绿色块，尝试延伸
+                const extended = fillContinuousBlocks(x, y);
+                if (extended) {
+                    return; // 如果已经延伸了，直接返回
+                }
+                // 如果没有延伸，继续执行普通的状态切换
+            }
+        }
+
+        // 处理起点状态
+        if(next === 'start') {
+            if(mapState.start) {
+                const oldStart = document.querySelector(`[data-x="${mapState.start.x}"][data-y="${mapState.start.y}"]`);
+                if(oldStart) {
+                    oldStart.dataset.state = 'wall';
+                    oldStart.className = 'cell wall';
+                    oldStart.textContent = '';
+                }
+            }
+            mapState.start = {x: +cell.dataset.x, y: +cell.dataset.y};
+        } else if(current === 'start') {
+            mapState.start = null;
+        }
+
+        // 处理终点状态
+        if(next === 'end') {
+            if(mapState.end) {
+                const oldEnd = document.querySelector(`[data-x="${mapState.end.x}"][data-y="${mapState.end.y}"]`);
+                if(oldEnd) {
+                    oldEnd.dataset.state = 'wall';
+                    oldEnd.className = 'cell wall';
+                    oldEnd.textContent = '';
+                }
+            }
+            mapState.end = {x: +cell.dataset.x, y: +cell.dataset.y};
+        } else if(current === 'end') {
+            mapState.end = null;
+        }
+
+        // 设置新状态
+        cell.dataset.state = next;
+        cell.className = `cell ${next}`;
+        if(next === 'start') cell.textContent = 'S';
+        if(next === 'end') cell.textContent = 'E';
+
+        if (cell.dataset.state === 'slow') {
+            const marker = cell.querySelector('.slow-marker');
+            if (marker) {
+                cell.removeChild(marker);
+            }
+        }
+    }
+
+    // 辅助函数：获取指定坐标的单元格
+    function getCell(x, y) {
+        return document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+    }
+
+    // 填充X和Y轴上的连续块
+    function fillContinuousBlocks(startX, startY) {
+        const grid = document.getElementById('grid');
+        const cols = parseInt(grid.style.gridTemplateColumns.match(/repeat\((\d+)/)[1]);
+        const rows = parseInt(grid.style.gridTemplateRows.match(/repeat\((\d+)/)[1]);
+
+        // 在X轴上寻找最近的绿色块
+        let nearestLeft = -1, nearestRight = -1;
+        // 向左找
+        for(let x = startX - 1; x >= 0; x--) {
+            if(getCell(x, startY)?.dataset.state === 'path') {
+                nearestLeft = x;
+                break;
+            }
+        }
+        // 向右找
+        for(let x = startX + 1; x < cols; x++) {
+            if(getCell(x, startY)?.dataset.state === 'path') {
+                nearestRight = x;
+                break;
+            }
+        }
+
+        // 在Y轴上寻找最近的绿色块
+        let nearestTop = -1, nearestBottom = -1;
+        // 向上找
+        for(let y = startY - 1; y >= 0; y--) {
+            if(getCell(startX, y)?.dataset.state === 'path') {
+                nearestTop = y;
+                break;
+            }
+        }
+        // 向下找
+        for(let y = startY + 1; y < rows; y++) {
+            if(getCell(startX, y)?.dataset.state === 'path') {
+                nearestBottom = y;
+                break;
+            }
+        }
+
+        let hasExtended = false;
+
+        // 填充X轴上的连接线
+        if(nearestLeft !== -1) {
+            for(let x = nearestLeft + 1; x <= startX; x++) {
+                const cell = getCell(x, startY);
+                if(cell && cell.dataset.state === 'wall') {
+                    cell.dataset.state = 'path';
+                    cell.className = 'cell path';
+                    hasExtended = true;
+                }
+            }
+        }
+        if(nearestRight !== -1) {
+            for(let x = startX; x <= nearestRight - 1; x++) {
+                const cell = getCell(x, startY);
+                if(cell && cell.dataset.state === 'wall') {
+                    cell.dataset.state = 'path';
+                    cell.className = 'cell path';
+                    hasExtended = true;
+                }
+            }
+        }
+
+        // 填充Y轴上的连接线
+        if(nearestTop !== -1) {
+            for(let y = nearestTop + 1; y <= startY; y++) {
+                const cell = getCell(startX, y);
+                if(cell && cell.dataset.state === 'wall') {
+                    cell.dataset.state = 'path';
+                    cell.className = 'cell path';
+                    hasExtended = true;
+                }
+            }
+        }
+        if(nearestBottom !== -1) {
+            for(let y = startY; y <= nearestBottom - 1; y++) {
+                const cell = getCell(startX, y);
+                if(cell && cell.dataset.state === 'wall') {
+                    cell.dataset.state = 'path';
+                    cell.className = 'cell path';
+                    hasExtended = true;
+                }
+            }
+        }
+
+        return hasExtended;
+    }
+    function exportData() {
+        const grid = document.getElementById('grid');
+        const cols = parseInt(grid.style.gridTemplateColumns.match(/repeat\((\d+)/)[1]);
+        const rows = parseInt(grid.style.gridTemplateRows.match(/repeat\((\d+)/)[1]);
+        const map = [];
+
+        for(let x = 0; x < cols; x++) {
+            const row = [];
+            for(let y = rows - 1; y >= 0; y--) {
+                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                let value = -1;
+                if (cell.dataset.state === 'path') {
+                    value = 1;
+                } else if (cell.dataset.state === 'slow') {
+                    value = 2;
+                } else if (cell.dataset.state === 'bush') {
+                    value = 3;
+                } else if (cell.dataset.state === 'duelist') {
+                    value = -2;
+                } else if (cell.dataset.state === 'eyes') {
+                    value = 4;
+                }
+                row.push(`"${value}"`);
+            }
+            map.push(row);
+        }
+
+        // 调整坐标转换逻辑
+        let startPoint = mapState.start ?
+            `Array(${mapState.start.x},${rows - 1 - mapState.start.y})` : 'Array(0,0)';
+        let endPoint = mapState.end ?
+            `Array(${mapState.end.x},${rows - 1 - mapState.end.y})` : 'Array(0,0)';
+
+        const output = `地图信息:\nDim map= Array(${map.map(r => `Array(${r.join(',')})`).join(',')})\n\n` +
+                       `坐标信息:\nDim startPoint = ${startPoint}\n` +
+                       `Dim endPoint = ${endPoint}`;
+
+        document.getElementById('output').textContent = output;
+    }
+    function importData() {
+        const input = document.getElementById('importData').value;
+
+        // 解析地图数据
+        const mapStringMatch = input.match(/Array\((Array\([\s\S]*?\))\)/);
+        if (!mapStringMatch) {
+            console.error('Invalid map data format');
+            return;
+        }
+        const mapString = mapStringMatch[1];
+        const mapData = mapString.split('Array(')
+            .filter(row => row.length > 0)
+            .map(row => {
+                return row.replace(/\)$|\),/g, '')
+                    .split(',')
+                    .map(str => {
+                        const numStr = str.replace(/"/g, '').trim();
+                        return parseInt(numStr);
+                    });
+            });
+
+        if (mapData.length > 0) {
+            const rows = mapData[0].length;  // 注意：这里交换了行列
+            const cols = mapData.length;
+
+            // 初始化网格
+            initGrid(rows, cols);
+
+            // 清除网格
+            document.getElementById('grid').innerHTML = '';
+
+            // 重新创建网格并设置正确的状态
+            for(let y = 0; y < rows; y++) {
+                for(let x = 0; x < cols; x++) {
+                    const cell = document.createElement('div');
+                    const cellValue = mapData[x][rows - 1 - y];
+                    let state = 'wall';
+                    if (cellValue === 1) {
+                        state = 'path';
+                    } else if (cellValue === 2) {
+                        state = 'slow';
+                        cell.classList.add('path'); // 设置为绿色
+                        cell.classList.add('slow');
+                        // 添加慢行标记
+                        const marker = document.createElement('div');
+                        marker.className = 'slow-marker';
+                        marker.style.position = 'absolute';
+                        marker.style.top = '0';
+                        marker.style.right = '0';
+                        marker.style.width = '10px';
+                        marker.style.height = '10px';
+                        marker.style.backgroundColor = 'orange';
+                        marker.style.color = 'white';
+                        marker.style.fontSize = '8px';
+                        marker.style.display = 'flex';
+                        marker.style.alignItems = 'center';
+                        marker.style.justifyContent = 'center';
+                        marker.textContent = '!';
+                        cell.appendChild(marker);
+                    } else if (cellValue === 3) {
+                        state = 'bush';
+                        const tagMarker = document.createElement('div');
+                        tagMarker.className = 'tag-marker';
+                        tagMarker.textContent = '?';
+                        cell.appendChild(tagMarker);
+                        cell.classList.add('bush');
+
+                        // 添加草丛图片
+                        const bushImage = document.createElement('div');
+                        bushImage.className = 'bush-image';
+                        cell.appendChild(bushImage);
+                    } else if (cellValue === -2) {
+                        state = 'duelist';
+                        const duelistMarker = document.createElement('div');
+                        duelistMarker.className = 'duelist-marker';
+                        duelistMarker.textContent = 'F';
+                        cell.appendChild(duelistMarker);
+                        cell.classList.add('duelist');
+
+                        // 添加人物图片
+                        const duelistImage = document.createElement('div');
+                        duelistImage.className = 'duelist-image';
+                        cell.appendChild(duelistImage);
+                    } else if (cellValue === 4) {
+                        state = 'eyes';
+                        const eyesMarker = document.createElement('div');
+                        eyesMarker.className = 'eyes-marker';
+                        eyesMarker.textContent = '👁';
+                        cell.appendChild(eyesMarker);
+                        cell.classList.add('eyes');
+
+                        // 添加眼睛图片
+                        const eyesImage = document.createElement('div');
+                        eyesImage.className = 'eyes-image';
+                        cell.appendChild(eyesImage);
+                    }
+                    cell.className = `cell ${state}`;
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.dataset.state = state;
+                    cell.onclick = () => cycleState(cell);
+                    document.getElementById('grid').appendChild(cell);
+                }
+            }
+
+            // 处理起点终点坐标
+            const startMatch = input.match(/startPoint = Array\((.*?)\)/);
+            const endMatch = input.match(/endPoint = Array\((.*?)\)/);
+
+            if(startMatch && endMatch) {
+                const [_, inputX, inputY] = startMatch[1].split(',').map(Number);
+                const [endY, endX] = endMatch[1].split(',').map(Number);
+
+                // 找到对应的单元格并设置状态
+                const startCell = document.querySelector(`[data-x="${startX}"][data-y="${startY}"]`);
+                const endCell = document.querySelector(`[data-x="${endX}"][data-y="${endY}"]`);
+
+                if(startCell) {
+                    startCell.dataset.state = 'start';
+                    startCell.className = 'cell start';
+                    startCell.textContent = 'S';
+                    mapState.start = {x: startX, y: startY};
+                }
+
+                if(endCell) {
+                    endCell.dataset.state = 'end';
+                    endCell.className = 'cell end';
+                    endCell.textContent = 'E';
+                    mapState.end = {x: endX, y: endY};
+                }
+            }
+        }
+    }
+    function expandGrid(direction) {
+        const grid = document.getElementById('grid');
+        const cols = parseInt(grid.style.gridTemplateColumns.match(/repeat\((\d+)/)[1]);
+        const rows = parseInt(grid.style.gridTemplateRows.match(/repeat\((\d+)/)[1]);
+
+        // 重新排列所有单元格的坐标
+        function reorderCells() {
+            const cells = Array.from(document.querySelectorAll('.cell'));
+            const cellMap = new Map();
+
+            // 先保存所有单元格的状态和标签
+            cells.forEach(cell => {
+                const x = parseInt(cell.dataset.x);
+                const y = parseInt(cell.dataset.y);
+                const state = cell.dataset.state;
+                const hasTagMarker = cell.querySelector('.tag-marker') !== null;
+                const hasSlowMarker = cell.querySelector('.slow-marker') !== null;
+                const hasDuelistMarker = cell.querySelector('.duelist-marker') !== null;
+                const hasEyesMarker = cell.querySelector('.eyes-marker') !== null;
+                const hasBushImage = cell.querySelector('.bush-image') !== null;
+                const hasDuelistImage = cell.querySelector('.duelist-image') !== null;
+                const hasEyesImage = cell.querySelector('.eyes-image') !== null;
+                cellMap.set(`${x},${y}`, { state, hasTagMarker, hasSlowMarker, hasDuelistMarker, hasEyesMarker, hasBushImage, hasDuelistImage, hasEyesImage });
+            });
+
+            // 清空网格
+            grid.innerHTML = '';
+
+            // 重新创建所有单元格
+            const newRows = direction === 'top' || direction === 'bottom' ? rows + 1 : rows;
+            const newCols = direction === 'left' || direction === 'right' ? cols + 1 : cols;
+
+            for(let y = 0; y < newRows; y++) {
+                for(let x = 0; x < newCols; x++) {
+                    let state = 'wall';
+                    let actualX = x;
+                    let actualY = y;
+
+                    // 根据扩展方向调整坐标
+                    switch(direction) {
+                        case 'top':
+                            actualY = y - 1;
+                            break;
+                        case 'left':
+                            actualX = x - 1;
+                            break;
+                    }
+
+                    // 检查是否存在原有状态和标签
+                    const existingCell = cellMap.get(`${actualX},${actualY}`);
+                    if (existingCell) {
+                        state = existingCell.state;
+                    }
+
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${state}`;
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.dataset.state = state;
+                    cell.onclick = () => cycleState(cell);
+
+                    if (state === 'start') cell.textContent = 'S';
+                    if (state === 'end') cell.textContent = 'E';
+
+                    // 恢复标签和样式
+                    if (existingCell) {
+                        if (existingCell.hasTagMarker) {
+                            const tagMarker = document.createElement('div');
+                            tagMarker.className = 'tag-marker';
+                            tagMarker.textContent = '?';
+                            cell.appendChild(tagMarker);
+                        }
+                        if (existingCell.hasSlowMarker) {
+                            const slowMarker = document.createElement('div');
+                            slowMarker.className = 'slow-marker';
+                            slowMarker.textContent = '!';
+                            cell.appendChild(slowMarker);
+                        }
+                        if (existingCell.hasDuelistMarker) {
+                            const duelistMarker = document.createElement('div');
+                            duelistMarker.className = 'duelist-marker';
+                            duelistMarker.textContent = 'F';
+                            cell.appendChild(duelistMarker);
+                        }
+                        if (existingCell.hasEyesMarker) {
+                            const eyesMarker = document.createElement('div');
+                            eyesMarker.className = 'eyes-marker';
+                            eyesMarker.textContent = '👁';
+                            cell.appendChild(eyesMarker);
+                        }
+                        if (existingCell.hasBushImage) {
+                            const bushImage = document.createElement('div');
+                            bushImage.className = 'bush-image';
+                            cell.appendChild(bushImage);
+                        }
+                        if (existingCell.hasDuelistImage) {
+                            const duelistImage = document.createElement('div');
+                            duelistImage.className = 'duelist-image';
+                            cell.appendChild(duelistImage);
+                        }
+                        if (existingCell.hasEyesImage) {
+                            const eyesImage = document.createElement('div');
+                            eyesImage.className = 'eyes-image';
+                            cell.appendChild(eyesImage);
+                        }
+                    }
+
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // 更新网格模板和重新排列单元格
+        switch(direction) {
+            case 'top':
+            case 'bottom':
+                grid.style.gridTemplateRows = `repeat(${rows + 1}, 1fr)`;
+                break;
+            case 'left':
+            case 'right':
+                grid.style.gridTemplateColumns = `repeat(${cols + 1}, 1fr)`;
+                break;
+        }
+
+        reorderCells();
+
+        // 更新起点终点状态
+        if (mapState.start) {
+            switch(direction) {
+                case 'top':
+                    mapState.start.y++;
+                    break;
+                case 'left':
+                    mapState.start.x++;
+                    break;
+            }
+        }
+        if (mapState.end) {
+            switch(direction) {
+                case 'top':
+                    mapState.end.y++;
+                    break;
+                case 'left':
+                    mapState.end.x++;
+                    break;
+            }
+        }
+    }
+    function locatePoints() {
+        const grid = document.getElementById('grid');
+        const rows = parseInt(grid.style.gridTemplateRows.match(/repeat\((\d+)/)[1]);
+
+        // 获取输入的坐标
+        const startInput = document.getElementById('startCoord').value;
+        const endInput = document.getElementById('endCoord').value;
+
+        // 解析坐标
+        const startMatch = startInput.match(/\((\d+),(\d+)\)/);
+        const endMatch = endInput.match(/\((\d+),(\d+)\)/);
+
+        if (startMatch) {
+            const [_, inputX, inputY] = startMatch;
+            // 清除旧的起点
+            if (mapState.start) {
+                const oldStart = document.querySelector(`[data-x="${mapState.start.x}"][data-y="${mapState.start.y}"]`);
+                if (oldStart) {
+                    oldStart.dataset.state = 'wall';
+                    oldStart.className = 'cell wall';
+                    oldStart.textContent = '';
+                }
+            }
+
+            // 根据当前的坐标系统转换
+            const x = parseInt(inputX);
+            const y = rows - 1 - parseInt(inputY);
+
+            // 设置新的起点
+            const startCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (startCell) {
+                startCell.dataset.state = 'start';
+                startCell.className = 'cell start';
+                startCell.textContent = 'S';
+                mapState.start = {x: x, y: y};
+            }
+        }
+
+        if (endMatch) {
+            const [_, inputX, inputY] = endMatch;
+            // 清除旧的终点
+            if (mapState.end) {
+                const oldEnd = document.querySelector(`[data-x="${mapState.end.x}"][data-y="${mapState.end.y}"]`);
+                if (oldEnd) {
+                    oldEnd.dataset.state = 'wall';
+                    oldEnd.className = 'cell wall';
+                    oldEnd.textContent = '';
+                }
+            }
+
+            // 根据当前的坐标系统转换
+            const x = parseInt(inputX);
+            const y = rows - 1 - parseInt(inputY);
+
+            // 设置新的终点
+            const endCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (endCell) {
+                endCell.dataset.state = 'end';
+                endCell.className = 'cell end';
+                endCell.textContent = 'E';
+                mapState.end = {x: x, y: y};
+            }
+        }
+    }
+    function disableOtherButtons(exceptId) {
+        const buttons = document.querySelectorAll('.tag-group button');
+        buttons.forEach(button => {
+            if (button.id !== exceptId) {
+                button.disabled = true;
+                button.style.opacity = 0.5;
+            }
+        });
+    }
+    function enableAllButtons() {
+        const buttons = document.querySelectorAll('.tag-group button');
+        buttons.forEach(button => {
+            button.disabled = false;
+            button.style.opacity = 1;
+        });
+    }
+    function toggleSlowMode() {
+        slowMode = !slowMode;
+        const button = document.getElementById('slowModeToggle');
+        button.textContent = slowMode ? '退出慢行模式' : '慢行模式';
+        if (slowMode) {
+            disableOtherButtons('slowModeToggle');
+        } else {
+            enableAllButtons();
+        }
+    }
+    function toggleBushMode() {
+        bushMode = !bushMode;
+        const button = document.getElementById('bushModeToggle');
+        button.textContent = bushMode ? '退出草丛模式' : '草丛模式';
+        if (bushMode) {
+            disableOtherButtons('bushModeToggle');
+        } else {
+            enableAllButtons();
+        }
+    }
+    function toggleDuelistMode() {
+        duelistMode = !duelistMode;
+        const button = document.getElementById('duelistModeToggle');
+        button.textContent = duelistMode ? '退出决斗者模式' : '决斗者模式';
+        if (duelistMode) {
+            disableOtherButtons('duelistModeToggle');
+        } else {
+            enableAllButtons();
+        }
+    }
+    function toggleEyesMode() {
+        eyesMode = !eyesMode;
+        const button = document.getElementById('eyesModeToggle');
+        button.textContent = eyesMode ? '退出眼睛模式' : '眼睛模式';
+        if (eyesMode) {
+            disableOtherButtons('eyesModeToggle');
+        } else {
+            enableAllButtons();
+        }
+    }
+    // 初始化默认网格
+    initGrid();
+</script>
+</body>
+</html>
